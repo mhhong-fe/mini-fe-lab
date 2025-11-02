@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Canvas 签字板（可保存）</title>
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f0f0f0;
+    font-family: sans-serif;
+    margin: 0;
+    padding: 40px;
+  }
+  canvas {
+    border: 2px solid #333;
+    background: #fff;
+    touch-action: none; /* 阻止触摸滚动 */
+  }
+  .toolbar {
+    margin-bottom: 10px;
+  }
+  button {
+    padding: 6px 12px;
+    margin-right: 6px;
+    cursor: pointer;
+  }
+  #savedImg {
+    margin-top: 20px;
+    border: 1px solid #ccc;
+  }
+</style>
+</head>
+<body>
+
+<h2>🖋 Canvas 签字板</h2>
+<div class="toolbar">
+  <button id="clearBtn">清空</button>
+  <button id="saveBtn">保存签名</button>
+</div>
+<canvas id="canvas" width="600" height="400"></canvas>
+<h3>保存的签名预览：</h3>
+<img id="savedImg" width="300" />
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const savedImg = document.getElementById('savedImg');
+
+let drawing = false;
+let lastX = 0, lastY = 0;
+
+// 设置线条样式
+ctx.lineWidth = 2;
+ctx.lineJoin = 'round';
+ctx.lineCap = 'round';
+ctx.strokeStyle = '#000';
+
+// 坐标转换（支持鼠标和触摸）
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  if (e.touches) {
+    return {
+      x: e.touches[0].clientX - rect.left,
+      y: e.touches[0].clientY - rect.top
+    };
+  } else {
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+  }
+}
+
+// 开始绘制
+function startDraw(e) {
+  drawing = true;
+  const pos = getPos(e);
+  lastX = pos.x;
+  lastY = pos.y;
+}
+
+// 绘制路径
+function draw(e) {
+  if (!drawing) return;
+  e.preventDefault(); // 阻止触摸滚动
+  const pos = getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+  lastX = pos.x;
+  lastY = pos.y;
+}
+
+// 结束绘制
+function endDraw() {
+  drawing = false;
+}
+
+// 清空画布
+document.getElementById('clearBtn').addEventListener('click', () => {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  savedImg.src = ''; // 清空预览
+});
+
+// 保存签名
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const dataURL = canvas.toDataURL('image/png');
+  savedImg.src = dataURL;
+});
+
+// 事件绑定
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', endDraw);
+canvas.addEventListener('mouseout', endDraw);
+
+// 支持触摸屏
+canvas.addEventListener('touchstart', startDraw);
+canvas.addEventListener('touchmove', draw);
+canvas.addEventListener('touchend', endDraw);
+canvas.addEventListener('touchcancel', endDraw);
+</script>
+
+</body>
+</html>

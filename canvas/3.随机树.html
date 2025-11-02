@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas 树 + 叶子结点</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            border: 1px solid #ccc;
+        }
+
+        .toolbar {
+            margin-bottom: 10px;
+        }
+
+        button {
+            padding: 6px 12px;
+            margin-right: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>🎨 树 + 叶子结点</h2>
+    <div class="toolbar">
+        <button id="treeBtn">随机树</button>
+    </div>
+    <canvas id="canvas" width="600" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const WIDTH = canvas.width;
+        const HEIGHT = canvas.height;
+
+        // 高分屏适配
+        function scaleCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = WIDTH * dpr;
+            canvas.height = HEIGHT * dpr;
+            canvas.style.width = WIDTH + "px";
+            canvas.style.height = HEIGHT + "px";
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        scaleCanvas();
+
+        function clear() {
+            ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        }
+
+        // 绘制树枝，只有枝条末端画叶子
+        function drawBranch(x, y, len, angle, thick) {
+            
+            if (thick < 1 || len < 5) {
+                // 枝条末端，画叶子
+                if (Math.random() < 0.5) {
+                    drawLeaf(x, y);
+                }
+                return;
+            }
+
+            const x1 = x + Math.cos((angle * Math.PI) / 180) * len;
+            const y1 = y - Math.sin((angle * Math.PI) / 180) * len;
+
+            // 树干
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x1, y1);
+            ctx.lineWidth = thick;
+            ctx.strokeStyle = `#5C4033`;
+            ctx.stroke();
+
+            const newLen = len * (0.7 + Math.random() * 0.1);
+            const newThick = thick * 0.7;
+
+            drawBranch(x1, y1, newLen, angle + Math.random() * 30, newThick);
+            drawBranch(x1, y1, newLen, angle - Math.random() * 30, newThick);
+        }
+
+        // 绘制叶子
+        function drawLeaf(x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate((Math.random() - 0.5) * Math.PI);
+            ctx.scale(1, Math.random() * 0.6 + 0.7);
+            ctx.beginPath();
+            ctx.arc(0, 0, 2 + Math.random() * 2, 0, 2 * Math.PI);
+            ctx.fillStyle = `hsl(${100 + Math.random() * 60}, 60%, 40%)`;
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawTree() {
+            clear();
+            drawBranch(WIDTH / 2, HEIGHT, 100, 90, 10);
+        }
+
+        document.getElementById('treeBtn').onclick = () => {
+            drawTree();
+        };
+
+        drawTree();
+    </script>
+</body>
+
+</html>

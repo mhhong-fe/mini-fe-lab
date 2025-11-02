@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Canvas 图像处理小工具</title>
+<style>
+  body {
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    background: #f9f9f9;
+  }
+  canvas { border: 1px solid #ccc; margin-top: 20px; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
+  button { padding: 6px 14px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer; }
+  button:hover { background: #f0f0f0; }
+  #preview { margin-top: 20px; border: 1px solid #ccc; max-width: 600px; display: none; }
+</style>
+</head>
+<body>
+<h2>Canvas 图像处理小工具</h2>
+
+<div class="toolbar">
+  <button id="loadBtn">加载图片</button>
+  <button id="grayBtn">灰度处理</button>
+  <button id="watermarkBtn">添加水印</button>
+  <button id="undoBtn">撤销</button>
+  <button id="previewBtn">生成预览</button>
+  <button id="saveBtn">保存图片</button>
+</div>
+
+<canvas id="canvas" width="600" height="400"></canvas>
+<h3>预览效果：</h3>
+<img id="preview" src="" alt="预览图片">
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+
+const loadBtn = document.getElementById('loadBtn');
+const grayBtn = document.getElementById('grayBtn');
+const watermarkBtn = document.getElementById('watermarkBtn');
+const undoBtn = document.getElementById('undoBtn');
+const previewBtn = document.getElementById('previewBtn');
+const saveBtn = document.getElementById('saveBtn');
+const preview = document.getElementById('preview');
+
+let img = new Image();
+let imgSrc = './data/scenery.jpg'; // 本地同源图片
+let imgDrawn = false;
+
+// 图像状态栈
+let stateStack = [];
+
+// 保存当前画布状态到栈
+function pushState() {
+    const data = ctx.getImageData(0,0,WIDTH,HEIGHT);
+    stateStack.push(data);
+}
+
+// 撤销
+function undo() {
+    if(stateStack.length > 0){
+        const last = stateStack.pop();
+        ctx.putImageData(last,0,0);
+    } else {
+        alert("没有可撤销的操作");
+    }
+}
+
+// 加载图片
+loadBtn.addEventListener('click', () => {
+    img.onload = () => {
+        ctx.clearRect(0,0,WIDTH,HEIGHT);
+        ctx.drawImage(img, 0, 0, WIDTH, HEIGHT);
+        imgDrawn = true;
+        stateStack = []; // 清空状态栈
+        pushState(); // 保存初始状态
+        preview.style.display = 'none';
+    };
+    img.src = imgSrc;
+});
+
+// 灰度处理
+grayBtn.addEventListener('click', () => {
+    if(!imgDrawn) return alert("请先加载图片");
+    pushState(); // 保存上一步状态
+    let imageData = ctx.getImageData(0,0,WIDTH,HEIGHT);
+    let data = imageData.data;
+    for(let i=0;i<data.length;i+=4){
+        const avg = (data[i]+data[i+1]+data[i+2])/3;
+        data[i]=data[i+1]=data[i+2]=avg;
+    }
+    ctx.putImageData(imageData,0,0);
+});
+
+// 添加水印
+watermarkBtn.addEventListener('click', () => {
+    if(!imgDrawn) return alert("请先加载图片");
+    pushState(); // 保存上一步状态
+    ctx.font = "36px sans-serif";
+    ctx.fillStyle = "rgba(255,0,0,0.5)";
+    ctx.fillText("测试水印", WIDTH-200, HEIGHT-40);
+});
+
+// 撤销
+undoBtn.addEventListener('click', undo);
+
+// 生成预览
+previewBtn.addEventListener('click', () => {
+    if(!imgDrawn) return alert("请先加载图片");
+    preview.src = canvas.toDataURL("image/png");
+    preview.style.display = 'block';
+});
+
+// 保存
+saveBtn.addEventListener('click', () => {
+    if(!imgDrawn) return alert("请先加载图片");
+    const url = canvas.toDataURL("image/png");
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "canvas_image.png";
+    a.click();
+});
+</script>
+</body>
+</html>
