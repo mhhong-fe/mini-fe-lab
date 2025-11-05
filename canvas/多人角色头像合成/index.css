@@ -11,6 +11,7 @@ body {
     display: flex;
     gap: 10px;
     margin: 20px 0;
+    justify-content: center;
 }
 
 .avatar {
@@ -30,7 +31,10 @@ body {
 .template-section {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 20px;
+    justify-content: center;
+    height: 100px;
+    margin-top: 40px;
 }
 
 .template-section img {
@@ -43,4 +47,19 @@ body {
 .no-template {
     color: #999;
     font-size: 14px;
+}
+
+.template:hover {
+    border-color: #ccc;
+}
+
+.template.selected {
+    border-color: #409eff;
+    box-shadow: 0 0 6px #409eff;
+    transform: scale(1.2);
+}
+
+.canvas-section {
+    display: flex;
+    justify-content: center;
 }
