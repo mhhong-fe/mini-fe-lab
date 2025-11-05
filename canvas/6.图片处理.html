@@ -2,130 +2,122 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>Canvas 图像处理小工具</title>
+<title>Canvas 圆形裁剪 Demo</title>
 <style>
   body {
     font-family: sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 40px;
+    text-align: center;
+    padding: 20px;
     background: #f9f9f9;
   }
-  canvas { border: 1px solid #ccc; margin-top: 20px; }
-  .toolbar { display: flex; gap: 10px; margin-bottom: 20px; }
-  button { padding: 6px 14px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer; }
-  button:hover { background: #f0f0f0; }
-  #preview { margin-top: 20px; border: 1px solid #ccc; max-width: 600px; display: none; }
+  canvas {
+    border: 1px solid #ccc;
+    margin-top: 20px;
+  }
+  button {
+    margin: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
-<h2>Canvas 图像处理小工具</h2>
 
-<div class="toolbar">
-  <button id="loadBtn">加载图片</button>
-  <button id="grayBtn">灰度处理</button>
-  <button id="watermarkBtn">添加水印</button>
-  <button id="undoBtn">撤销</button>
-  <button id="previewBtn">生成预览</button>
-  <button id="saveBtn">保存图片</button>
+<h2>Canvas 圆形裁剪 Demo</h2>
+
+<div>
+  <button onclick="loadImage()">加载图片</button>
+  <button onclick="rotateImage()">旋转 15°</button>
+  <button onclick="cropCircle()">圆形裁剪</button>
+  <button onclick="grayscaleImage()">灰度化</button>
+  <button onclick="exportImage()">导出图片</button>
 </div>
 
-<canvas id="canvas" width="600" height="400"></canvas>
-<h3>预览效果：</h3>
-<img id="preview" src="" alt="预览图片">
+<canvas id="myCanvas" width="600" height="400"></canvas>
 
 <script>
-const canvas = document.getElementById('canvas');
+const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
-const WIDTH = canvas.width;
-const HEIGHT = canvas.height;
-
-const loadBtn = document.getElementById('loadBtn');
-const grayBtn = document.getElementById('grayBtn');
-const watermarkBtn = document.getElementById('watermarkBtn');
-const undoBtn = document.getElementById('undoBtn');
-const previewBtn = document.getElementById('previewBtn');
-const saveBtn = document.getElementById('saveBtn');
-const preview = document.getElementById('preview');
 
 let img = new Image();
-let imgSrc = './data/scenery.jpg'; // 本地同源图片
-let imgDrawn = false;
+let angle = 0;
 
-// 图像状态栈
-let stateStack = [];
+// 图片显示在画布中央，尺寸占画布1/3
+let displayWidth = canvas.width / 3;
+let displayHeight = canvas.height / 3;
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
 
-// 保存当前画布状态到栈
-function pushState() {
-    const data = ctx.getImageData(0,0,WIDTH,HEIGHT);
-    stateStack.push(data);
+// 1. 加载图片
+function loadImage() {
+  img.src = './data/scenery.jpg';
+  img.crossOrigin = "Anonymous";
+  img.onload = () => {
+    angle = 0;
+    drawImageAtCenter();
+  };
 }
 
-// 撤销
-function undo() {
-    if(stateStack.length > 0){
-        const last = stateStack.pop();
-        ctx.putImageData(last,0,0);
-    } else {
-        alert("没有可撤销的操作");
-    }
+// 绘制图片到中央
+function drawImageAtCenter() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.rotate(angle * Math.PI / 180);
+  ctx.drawImage(img, -displayWidth/2, -displayHeight/2, displayWidth, displayHeight);
+  ctx.restore();
 }
 
-// 加载图片
-loadBtn.addEventListener('click', () => {
-    img.onload = () => {
-        ctx.clearRect(0,0,WIDTH,HEIGHT);
-        ctx.drawImage(img, 0, 0, WIDTH, HEIGHT);
-        imgDrawn = true;
-        stateStack = []; // 清空状态栈
-        pushState(); // 保存初始状态
-        preview.style.display = 'none';
-    };
-    img.src = imgSrc;
-});
+// 2. 旋转图片
+function rotateImage() {
+  if (!img.src) return alert('请先加载图片');
+  angle += 15;
+  drawImageAtCenter();
+}
 
-// 灰度处理
-grayBtn.addEventListener('click', () => {
-    if(!imgDrawn) return alert("请先加载图片");
-    pushState(); // 保存上一步状态
-    let imageData = ctx.getImageData(0,0,WIDTH,HEIGHT);
-    let data = imageData.data;
-    for(let i=0; i < data.length; i+=4){
-        const avg = (data[i]+data[i+1]+data[i+2])/3;
-        data[i] = data[i+1] = data[i+2] = avg;
-    }
-    ctx.putImageData(imageData,0,0);
-});
+// 3. 圆形裁剪
+function cropCircle() {
+  if (!img.src) return alert('请先加载图片');
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.rotate(angle * Math.PI / 180);
+  
+  // 创建圆形裁剪区域
+  ctx.beginPath();
+  const radius = Math.min(displayWidth, displayHeight) / 2;
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.clip();
+  
+  // 绘制图片
+  ctx.drawImage(img, -displayWidth/2, -displayHeight/2, displayWidth, displayHeight);
+  ctx.restore();
+}
 
-// 添加水印
-watermarkBtn.addEventListener('click', () => {
-    if(!imgDrawn) return alert("请先加载图片");
-    pushState(); // 保存上一步状态
-    ctx.font = "36px sans-serif";
-    ctx.fillStyle = "rgba(255,0,0,0.5)";
-    ctx.fillText("测试水印", WIDTH-200, HEIGHT-40);
-});
+// 4. 灰度化处理
+function grayscaleImage() {
+  if (!img.src) return alert('请先加载图片');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  
+  for (let i = 0; i < data.length; i += 4) {
+    const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+    data[i] = data[i+1] = data[i+2] = avg;
+  }
+  
+  ctx.putImageData(imageData, 0, 0);
+}
 
-// 撤销
-undoBtn.addEventListener('click', undo);
-
-// 生成预览
-previewBtn.addEventListener('click', () => {
-    if(!imgDrawn) return alert("请先加载图片");
-    preview.src = canvas.toDataURL("image/png");
-    preview.style.display = 'block';
-});
-
-// 保存
-saveBtn.addEventListener('click', () => {
-    if(!imgDrawn) return alert("请先加载图片");
-    const url = canvas.toDataURL("image/png");
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = "canvas_image.png";
-    a.click();
-});
+// 5. 导出图片
+function exportImage() {
+  const dataURL = canvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = dataURL;
+  a.download = 'canvas_image.png';
+  a.click();
+}
 </script>
+
 </body>
 </html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>下雨 + 四溅水花</title>
+<style>
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #0a1f2c;
+    margin: 0;
+  }
+  canvas {
+    border: 1px solid #333;
+    background: linear-gradient(to bottom, #0a1f2c, #1a3b5a);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="rainCanvas" width="600" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById('rainCanvas');
+const ctx = canvas.getContext('2d');
+const width = canvas.width;
+const height = canvas.height;
+
+const rainCount = 150;
+const rainDrops = [];
+const splashes = [];
+
+// 初始化雨滴
+for (let i = 0; i < rainCount; i++) {
+  rainDrops.push({
+    x: Math.random() * width,
+    y: Math.random() * height,
+    length: 10 + Math.random() * 20,
+    speed: 4 + Math.random() * 4,
+    opacity: 0.2 + Math.random() * 0.5
+  });
+}
+
+// 绘制雨滴
+function drawRain() {
+  ctx.clearRect(0, 0, width, height);
+
+  ctx.strokeStyle = 'rgba(174,194,224,0.5)';
+  ctx.lineWidth = 1;
+  ctx.lineCap = 'round';
+
+  for (let i = 0; i < rainDrops.length; i++) {
+    const drop = rainDrops[i];
+    ctx.beginPath();
+    ctx.moveTo(drop.x, drop.y);
+    ctx.lineTo(drop.x, drop.y + drop.length);
+    ctx.stroke();
+
+    drop.y += drop.speed;
+
+    // 随机生成四溅水花
+    if (drop.y > height - 2) {
+      if (Math.random() < 0.3) {
+        createSplash(drop.x, height - 2);
+      }
+      drop.y = -drop.length;
+      drop.x = Math.random() * width;
+      drop.speed = 4 + Math.random() * 4;
+      drop.length = 10 + Math.random() * 20;
+      drop.opacity = 0.2 + Math.random() * 0.5;
+    }
+  }
+
+  // 绘制水花粒子
+  for (let i = splashes.length - 1; i >= 0; i--) {
+    const s = splashes[i];
+    ctx.beginPath();
+    ctx.moveTo(s.x, s.y);
+    ctx.lineTo(s.x + s.vx, s.y + s.vy);
+    ctx.strokeStyle = `rgba(174,194,224,${s.alpha})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // 更新粒子位置
+    s.x += s.vx;
+    s.y += s.vy;
+    s.alpha -= 0.02;
+    if (s.alpha <= 0) {
+      splashes.splice(i, 1);
+    }
+  }
+
+  requestAnimationFrame(drawRain);
+}
+
+// 创建四溅水花粒子
+function createSplash(x, y) {
+  const count = 3 + Math.floor(Math.random() * 3); // 每滴雨生成3~5个小水花
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI - Math.PI/2; // 水花向四周飞溅，偏上半圆
+    const speed = 1 + Math.random() * 2;
+    splashes.push({
+      x: x,
+      y: y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed * 0.5, // 垂直偏小，飞溅扁平
+      alpha: 0.3 + Math.random() * 0.3
+    });
+  }
+}
+
+drawRain();
+</script>
+
+</body>
+</html>
