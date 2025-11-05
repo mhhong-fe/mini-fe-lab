@@ -1,0 +1,46 @@
+html {
+    background-color: #101011;
+}
+
+body {
+    font-family: sans-serif;
+    padding: 20px;
+}
+
+.avatar-section {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    /* border-radius: 50%; */
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.avatar.selected {
+    border-color: #409eff;
+    box-shadow: 0 0 5px #409eff;
+}
+
+.template-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.template-section img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    transition: 0.2s;
+}
+
+.no-template {
+    color: #999;
+    font-size: 14px;
+}
