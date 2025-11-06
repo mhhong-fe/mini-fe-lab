@@ -63,7 +63,7 @@
   <h2>🎨 Canvas 基础图形演示</h2>
 
   <div class="toolbar">
-    <button data-type="point">点</button>
+    <!-- <button data-type="point">点</button> -->
     <button data-type="line">线</button>
     <button data-type="triangle">三角形</button>
     <button data-type="rect">矩形</button>
@@ -132,18 +132,6 @@
     }
 
     const demos = {
-      point: {
-        draw(ctx) {
-          ctx.beginPath();
-          ctx.arc(100, 100, 3, 0, Math.PI * 2);
-          ctx.fillStyle = "red";
-          ctx.fill();
-        },
-        code: `ctx.beginPath();
-ctx.arc(100, 100, 3, 0, Math.PI * 2);
-ctx.fillStyle = "red";
-ctx.fill();`,
-      },
       line: {
         draw(ctx) {
           ctx.beginPath();
@@ -257,7 +245,7 @@ ctx.fillText("🎨 居中对齐文字", 300, 300);`,
       btn.addEventListener("click", () => draw(btn.dataset.type));
     });
 
-    draw("point");
+    draw("line");
   </script>
 </body>
 </html>

@@ -35,7 +35,6 @@
 </head>
 
 <body>
-
     <h2>🎨 树 + 叶子结点</h2>
     <div class="toolbar">
         <button id="treeBtn">随机树</button>
@@ -65,7 +64,7 @@
 
         // 绘制树枝，只有枝条末端画叶子
         function drawBranch(x, y, len, angle, thick) {
-            
+            // 宽度<1，长度<5，停止递归
             if (thick < 1 || len < 5) {
                 // 枝条末端，画叶子
                 if (Math.random() < 0.5) {

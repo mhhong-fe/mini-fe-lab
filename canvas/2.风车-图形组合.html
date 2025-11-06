@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>Canvas 风车</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-family: system-ui, sans-serif;
+      background: #f0f0f0;
+      padding: 40px;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎨 Canvas 风车（直接坐标版，无旋转）</h2>
+  <canvas id="canvas" width="400" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    // 高分屏适配
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = 400 * dpr;
+    canvas.height = 400 * dpr;
+    canvas.style.width = "400px";
+    canvas.style.height = "400px";
+    ctx.scale(dpr, dpr);
+
+    const cx = 200;
+    const cy = 200;
+    const colors = ["#ff4d4f","#ffa940","#73d13d","#40a9ff"];
+
+    // 直接写出四个叶片坐标
+    const blades = [
+      // 右侧叶片
+      [
+        {x: cx, y: cy},
+        {x: cx + 80, y: cy - 20},
+        {x: cx + 80, y: cy + 20}
+      ],
+      // 下方叶片
+      [
+        {x: cx, y: cy},
+        {x: cx + 20, y: cy + 80},
+        {x: cx - 20, y: cy + 80}
+      ],
+      // 左侧叶片
+      [
+        {x: cx, y: cy},
+        {x: cx - 80, y: cy + 20},
+        {x: cx - 80, y: cy - 20}
+      ],
+      // 上方叶片
+      [
+        {x: cx, y: cy},
+        {x: cx - 20, y: cy - 80},
+        {x: cx + 20, y: cy - 80}
+      ]
+    ];
+
+    // 绘制叶片
+    blades.forEach((points, i) => {
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      ctx.lineTo(points[1].x, points[1].y);
+      ctx.lineTo(points[2].x, points[2].y);
+      ctx.closePath();
+      ctx.fillStyle = colors[i];
+      ctx.fill();
+      ctx.strokeStyle = "#333";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // 绘制中心圆
+    ctx.beginPath();
+    ctx.arc(cx, cy, 15, 0, Math.PI * 2);
+    ctx.fillStyle = "#333";
+    ctx.fill();
+
+    // 绘制支架
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + 15);
+    ctx.lineTo(cx, 350);
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = "#555";
+    ctx.stroke();
+  </script>
+</body>
+</html>

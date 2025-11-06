@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
   <meta charset="UTF-8" />
-  <title>0. Canvas 坐标系演示</title>
+  <title>Canvas 坐标系演示（左下角原点 + 高清屏适配）</title>
   <style>
     body {
       background: #f9f9f9;
@@ -12,60 +11,48 @@
       align-items: center;
       font-family: system-ui, sans-serif;
     }
-
     #canvas {
       border: 1px solid #ccc;
       background: #fff;
       margin-top: 20px;
-      /* width: 900px;
-      height: 600px; */
-    }
-
-    #coords {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #333;
     }
   </style>
 </head>
-
 <body>
-  <h2>Canvas 坐标系演示</h2>
+  <h2>Canvas 坐标系演示（原点在左下角，Y轴向上）</h2>
   <canvas id="canvas" width="600" height="400"></canvas>
-  <!-- <div id="coords">坐标：x=0, y=0</div> -->
 
   <script>
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
-    // 保存逻辑尺寸
     const LOGICAL_WIDTH = 600;
     const LOGICAL_HEIGHT = 400;
 
-    const coords = document.getElementById("coords");
-
+    // === 高清屏适配 ===
     function scaleCanvas() {
       const dpr = window.devicePixelRatio || 1;
 
-      // 设置实际像素大小（物理像素）
+      // 设置物理像素尺寸
       canvas.width = LOGICAL_WIDTH * dpr;
       canvas.height = LOGICAL_HEIGHT * dpr;
 
-      // 保持 CSS 尺寸（逻辑像素）
+      // 保持CSS逻辑尺寸
       canvas.style.width = LOGICAL_WIDTH + "px";
       canvas.style.height = LOGICAL_HEIGHT + "px";
 
-      // 缩放绘图上下文，让逻辑像素对应 CSS 像素
-      // ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 替代 ctx.scale(dpr,dpr)
-      ctx.scale(dpr,dpr)
+      // 重置变换并按DPR缩放
+      ctx.scale(dpr, dpr);
     }
 
-        
+    // === 设置左下角为原点、Y轴向上 ===
+    function setupCoordinateSystem() {
+      ctx.translate(0, LOGICAL_HEIGHT);
+      ctx.scale(1, -1);
+    }
 
+    // === 绘制网格与坐标轴 ===
     function drawGrid() {
-      ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-
-      // 绘制网格线
       ctx.strokeStyle = "#eee";
       ctx.lineWidth = 1;
       for (let x = 0; x <= LOGICAL_WIDTH; x += 50) {
@@ -81,49 +68,46 @@
         ctx.stroke();
       }
 
-      // 绘制坐标轴
+      // 坐标轴
       ctx.strokeStyle = "#333";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.lineTo(LOGICAL_WIDTH, 0); // x轴
+      ctx.lineTo(LOGICAL_WIDTH, 0);
       ctx.stroke();
+
       ctx.beginPath();
       ctx.moveTo(0, 0);
-      ctx.lineTo(0, LOGICAL_HEIGHT); // y轴
+      ctx.lineTo(0, LOGICAL_HEIGHT);
       ctx.stroke();
 
-      // 标注刻度
+      // === 绘制刻度 ===
+      ctx.save();
+      ctx.scale(1, -1); // 翻转文字方向
       ctx.fillStyle = "#666";
       ctx.font = "12px sans-serif";
+
       for (let x = 0; x <= LOGICAL_WIDTH; x += 50) {
-        ctx.fillText(x, x + 2, 12);
+        ctx.fillText(x, x + 2, -5);
       }
-      for (let y = 50; y <= LOGICAL_HEIGHT; y += 50) {
-        ctx.fillText(y, 2, y - 2);
+      for (let y = 50; y <= LOGICAL_HEIGHT - 50; y += 50) {
+        ctx.fillText(y, 2, -(y - 2));
       }
+
+      ctx.restore();
     }
 
+    // === 绘制矩形 ===
     function drawRectangle() {
       ctx.fillStyle = "rgba(100, 150, 250, 0.5)";
       ctx.fillRect(100, 100, 200, 150);
     }
 
-    // scaleCanvas();
+    // === 初始化 ===
+    scaleCanvas();
+    setupCoordinateSystem();
     drawGrid();
     drawRectangle();
-
-    // 鼠标移动显示逻辑坐标
-    // canvas.addEventListener("mousemove", (e) => {
-    //   const rect = canvas.getBoundingClientRect();
-    //   const dpr = window.devicePixelRatio || 1;
-
-    //   // 计算逻辑坐标
-    //   const x = Math.floor((e.clientX - rect.left));
-    //   const y = Math.floor((e.clientY - rect.top));
-    //   coords.textContent = `坐标：x=${x}, y=${y}`;
-    // });
   </script>
 </body>
-
 </html>

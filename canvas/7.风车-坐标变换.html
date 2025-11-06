@@ -32,7 +32,7 @@
     canvas.height = 400 * dpr;
     canvas.style.width = "400px";
     canvas.style.height = "400px";
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.scale(dpr, dpr);
 
     // 清空画布
     ctx.clearRect(0,0,400,400);
@@ -60,7 +60,7 @@
     // 保存状态 -> 平移到中心 -> 旋转 -> 绘制叶片 -> 恢复
     for(let i=0;i<4;i++){
       ctx.save();
-      ctx.translate(cx,cy);
+      ctx.translate(cx, cy);
       ctx.rotate((i * Math.PI/2));
       drawBlade(colors[i]);
       ctx.restore();
