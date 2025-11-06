@@ -48,6 +48,21 @@ const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const savedImg = document.getElementById('savedImg');
 
+
+const LOGICAL_WIDTH = 600;
+const LOGICAL_HEIGHT = 400;
+// 高分屏适配
+function scaleCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = LOGICAL_WIDTH * dpr;
+    canvas.height = LOGICAL_HEIGHT * dpr;
+    canvas.style.width = LOGICAL_WIDTH + "px";
+    canvas.style.height = LOGICAL_HEIGHT + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+scaleCanvas();
+
 let drawing = false;
 let lastX = 0, lastY = 0;
 

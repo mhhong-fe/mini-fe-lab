@@ -91,7 +91,7 @@
       canvas.height = LOGICAL_HEIGHT * dpr;
       canvas.style.width = LOGICAL_WIDTH + "px";
       canvas.style.height = LOGICAL_HEIGHT + "px";
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.scale(dpr,dpr);
     }
 
     // ✅ 网格背景
