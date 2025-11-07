@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Canvas 绘制 + 拖拽交互 + 网格 Demo</title>
+        <style>
+            body {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 40px;
+                font-family: system-ui, sans-serif;
+            }
+            .toolbar {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 16px;
+            }
+            button {
+                padding: 6px 14px;
+                border-radius: 6px;
+                border: 1px solid #ddd;
+                background: white;
+                cursor: pointer;
+            }
+            button.active {
+                background: #007bff;
+                color: white;
+                border-color: #007bff;
+            }
+            canvas {
+                border: 1px solid #ccc;
+                background: #fff;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="toolbar">
+            <button data-mode="rect" class="active">绘制矩形</button>
+            <button data-mode="circle">绘制圆</button>
+            <button data-mode="line">绘制直线</button>
+            <button id="clear">清空</button>
+        </div>
+
+        <canvas id="canvas" width="600" height="400"></canvas>
+
+        <script>
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+
+            const LOGICAL_WIDTH = 600;
+            const LOGICAL_HEIGHT = 400;
+
+            // 高分屏适配
+            function scaleCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = LOGICAL_WIDTH * dpr;
+                canvas.height = LOGICAL_HEIGHT * dpr;
+                canvas.style.width = LOGICAL_WIDTH + "px";
+                canvas.style.height = LOGICAL_HEIGHT + "px";
+                ctx.scale(dpr, dpr);
+            }
+
+            scaleCanvas();
+
+            // 当前绘制形状
+            let mode = "rect";
+            // 工具栏
+            const buttons = document.querySelectorAll("button[data-mode]");
+            const clearBtn = document.getElementById("clear");
+            
+            buttons.forEach((btn) =>
+                btn.addEventListener("click", () => {
+                    mode = btn.dataset.mode;
+                    buttons.forEach((b) =>
+                        b.classList.toggle("active", b === btn)
+                    );
+                })
+            );
+
+            clearBtn.addEventListener("click", () => {
+                shapes = [];
+                render();
+            });
+
+            // 数据源
+            let shapes = [];
+            // 是否绘制中
+            let isDrawing = false;
+            // 起始点
+            let startPoint = null;
+            // 选中的形状
+            let selectedShape = null;
+            // 是否拖拽中
+            let dragging = false;
+            let offsetX = 0;
+            let offsetY = 0;
+
+            // 坐标转换
+            function getCanvasPos(e) {
+                const rectBox = canvas.getBoundingClientRect();
+                return {
+                    x: e.clientX - rectBox.left,
+                    y: e.clientY - rectBox.top,
+                };
+            }
+
+            // 网格绘制
+            function drawGrid() {
+                const step = 50;
+                ctx.save();
+                ctx.strokeStyle = "#eee";
+                ctx.lineWidth = 1;
+                for (let x = 0; x <= LOGICAL_WIDTH; x += step) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, LOGICAL_HEIGHT);
+                    ctx.stroke();
+                }
+                for (let y = 0; y <= LOGICAL_HEIGHT; y += step) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(LOGICAL_WIDTH, y);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            // 命中检测
+            function isPointInRect(px, py, r) {
+                return (
+                    px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h
+                );
+            }
+
+            function isPointInCircle(px, py, c) {
+                return Math.hypot(px - c.x, py - c.y) <= c.r;
+            }
+
+            function isPointNearLine(px, py, l) {
+                const { x1, y1, x2, y2 } = l;
+                const A = px - x1;
+                const B = py - y1;
+                const C = x2 - x1;
+                const D = y2 - y1;
+                const dot = A * C + B * D;
+                const len_sq = C * C + D * D;
+                let param = -1;
+                if (len_sq !== 0) param = dot / len_sq;
+                let xx, yy;
+                if (param < 0) {
+                    xx = x1;
+                    yy = y1;
+                } else if (param > 1) {
+                    xx = x2;
+                    yy = y2;
+                } else {
+                    xx = x1 + param * C;
+                    yy = y1 + param * D;
+                }
+                const dx = px - xx;
+                const dy = py - yy;
+                return Math.hypot(dx, dy) <= 5;
+            }
+
+            function getShapeAt(x, y) {
+                for (let i = shapes.length - 1; i >= 0; i--) {
+                    const s = shapes[i];
+                    if (s.type === "rect" && isPointInRect(x, y, s)) return s;
+                    if (s.type === "circle" && isPointInCircle(x, y, s))
+                        return s;
+                    if (s.type === "line" && isPointNearLine(x, y, s)) return s;
+                }
+                return null;
+            }
+
+            // 渲染
+            function render() {
+                ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                drawGrid(); // 先画网格
+                shapes.forEach((s) => {
+                    ctx.beginPath();
+                    if (s.type === "rect") {
+                        ctx.fillStyle = s.selected ? "red" : "orange";
+                        ctx.fillRect(s.x, s.y, s.w, s.h);
+                    } else if (s.type === "circle") {
+                        ctx.fillStyle = s.selected ? "red" : "green";
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (s.type === "line") {
+                        ctx.strokeStyle = s.selected ? "red" : "blue";
+                        ctx.lineWidth = 2;
+                        ctx.moveTo(s.x1, s.y1);
+                        ctx.lineTo(s.x2, s.y2);
+                        ctx.stroke();
+                    }
+                });
+            }
+
+            // 鼠标事件
+            canvas.addEventListener("mousedown", (e) => {
+                const pos = getCanvasPos(e);
+                selectedShape = getShapeAt(pos.x, pos.y);
+                if (selectedShape) {
+                    shapes.forEach((s) => (s.selected = false));
+                    selectedShape.selected = true;
+                    dragging = true;
+                    if (
+                        selectedShape.type === "rect" ||
+                        selectedShape.type === "circle"
+                    ) {
+                        offsetX = pos.x - selectedShape.x;
+                        offsetY = pos.y - selectedShape.y;
+                    } else if (selectedShape.type === "line") {
+                        offsetX = pos.x;
+                        offsetY = pos.y;
+                    }
+                } else {
+                    shapes.forEach((s) => (s.selected = false));
+                    isDrawing = true;
+                    startPoint = pos;
+                    selectedShape = null;
+                }
+                render();
+            });
+
+            canvas.addEventListener("mousemove", (e) => {
+                const pos = getCanvasPos(e);
+                // 拖拽
+                if (dragging && selectedShape) {
+                    if (
+                        selectedShape.type === "rect" ||
+                        selectedShape.type === "circle"
+                    ) {
+                        selectedShape.x = pos.x - offsetX;
+                        selectedShape.y = pos.y - offsetY;
+                    } else if (selectedShape.type === "line") {
+                        const dx = pos.x - offsetX;
+                        const dy = pos.y - offsetY;
+                        selectedShape.x1 += dx;
+                        selectedShape.y1 += dy;
+                        selectedShape.x2 += dx;
+                        selectedShape.y2 += dy;
+                        offsetX = pos.x;
+                        offsetY = pos.y;
+                    }
+                    render();
+                    return;
+                } 
+                
+                // 绘制
+                if (isDrawing) {
+                    render();
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeStyle = "gray";
+                    ctx.lineWidth = 1.5;
+                    if (mode === "rect")
+                        ctx.strokeRect(
+                            startPoint.x,
+                            startPoint.y,
+                            pos.x - startPoint.x,
+                            pos.y - startPoint.y
+                        );
+                    else if (mode === "circle") {
+                        const r = Math.hypot(
+                            pos.x - startPoint.x,
+                            pos.y - startPoint.y
+                        );
+                        ctx.beginPath();
+                        ctx.arc(startPoint.x, startPoint.y, r, 0, Math.PI * 2);
+                        ctx.stroke();
+                    } else if (mode === "line") {
+                        ctx.beginPath();
+                        ctx.moveTo(startPoint.x, startPoint.y);
+                        ctx.lineTo(pos.x, pos.y);
+                        ctx.stroke();
+                    }
+                    ctx.setLineDash([]);
+                }
+            });
+
+            canvas.addEventListener("mouseup", (e) => {
+                if (isDrawing) {
+                    const pos = getCanvasPos(e);
+                    if (mode === "rect")
+                        shapes.push({
+                            type: "rect",
+                            x: startPoint.x,
+                            y: startPoint.y,
+                            w: pos.x - startPoint.x,
+                            h: pos.y - startPoint.y,
+                            selected: false,
+                        });
+                    else if (mode === "circle") {
+                        const r = Math.hypot(
+                            pos.x - startPoint.x,
+                            pos.y - startPoint.y
+                        );
+                        shapes.push({
+                            type: "circle",
+                            x: startPoint.x,
+                            y: startPoint.y,
+                            r,
+                            selected: false,
+                        });
+                    } else if (mode === "line")
+                        shapes.push({
+                            type: "line",
+                            x1: startPoint.x,
+                            y1: startPoint.y,
+                            x2: pos.x,
+                            y2: pos.y,
+                            selected: false,
+                        });
+                }
+                isDrawing = false;
+                dragging = false;
+                selectedShape = null;
+                render();
+            });
+
+            canvas.addEventListener("mouseleave", () => {
+                isDrawing = false;
+                dragging = false;
+                selectedShape = null;
+            });
+
+            // 初始渲染
+            render();
+        </script>
+    </body>
+</html>
