@@ -1,82 +1,86 @@
 <!DOCTYPE html>
 <html lang="zh">
-<head>
-<meta charset="UTF-8">
-<title>音频波谱动画</title>
-<style>
-  body {
-    background: #111;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    margin: 0;
-    color: white;
-  }
-  canvas {
-    background: #fff; /* 白色底板 */
-    display: block;
-  }
-</style>
-</head>
-<body>
-<h2>音频波谱动画</h2>
-<canvas id="waveCanvas" width="800" height="200"></canvas>
+    <head>
+        <meta charset="UTF-8" />
+        <title>音频波谱动画</title>
+        <style>
+            body {
+                background: #111;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                color: white;
+            }
+            canvas {
+                background: #fff; /* 白色底板 */
+                display: block;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>音频波谱动画</h2>
+        <canvas id="waveCanvas" width="800" height="200"></canvas>
 
-<script>
-const canvas = document.getElementById('waveCanvas');
-const ctx = canvas.getContext('2d');
+        <script>
+            const canvas = document.getElementById("waveCanvas");
+            const ctx = canvas.getContext("2d");
 
-// 高清屏适配
-const dpr = window.devicePixelRatio || 1;
-const W = canvas.width;
-const H = canvas.height / 2;
-canvas.width = W * dpr;
-canvas.height = H * dpr;
-canvas.style.width = W + 'px';
-canvas.style.height = H + 'px';
-ctx.scale(dpr, dpr);
+            // 高清屏适配
+            const dpr = window.devicePixelRatio || 1;
+            const W = canvas.width;
+            const H = canvas.height / 2;
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            canvas.style.width = W + "px";
+            canvas.style.height = H + "px";
+            ctx.scale(dpr, dpr);
 
-// 配置
-const barWidth = 2;
-const gap = 4;
-const centerY = H / 2;
-const moveSpeed = 1; // 每帧往左移动像素
-const totalData = 10000;
+            // 配置
+            const barWidth = 2;
+            const gap = 4;
+            const centerY = H / 2;
+            const moveSpeed = 1; // 每帧往左移动像素
+            const totalData = 10000;
 
-// 一次性生成固定数据
-const volumeData = Array.from({length: totalData}, () => Math.random() * 100);
+            // 一次性生成固定数据
+            const volumeData = Array.from(
+                { length: totalData },
+                () => Math.random() * 100
+            );
 
-let offset = 0; // 累积偏移量
+            let offset = 0; // 累积偏移量
 
-function drawWave() {
-    ctx.clearRect(0, 0, W, H);
+            function drawWave() {
+                ctx.clearRect(0, 0, W, H);
 
-    offset += moveSpeed;
+                offset += moveSpeed;
 
-    // 当前窗口能显示的柱条数量
-    const barsPerScreen = Math.ceil(W / (barWidth + gap));
-    const startIndex = Math.floor(offset / (barWidth + gap));
+                // 当前窗口能显示的柱条数量
+                const barsPerScreen = Math.ceil(W / (barWidth + gap));
+                const startIndex = Math.floor(offset / (barWidth + gap));
 
-    for (let i = 0; i < barsPerScreen; i++) {
-        const dataIndex = startIndex + i;
-        if (dataIndex >= volumeData.length) break;
+                for (let i = 0; i < barsPerScreen; i++) {
+                    const dataIndex = startIndex + i;
+                    if (dataIndex >= volumeData.length) break;
 
-        const volume = volumeData[dataIndex];
-        const normalized = Math.min(volume / 100, 1);
-        const barHeight = normalized * H * 0.5;
-        const x = i * (barWidth + gap) - (offset % (barWidth + gap));
-        const y = centerY - barHeight / 2;
+                    const volume = volumeData[dataIndex];
+                    const normalized = Math.min(volume / 100, 1);
+                    const barHeight = normalized * H * 0.5;
+                    const x =
+                        i * (barWidth + gap) - (offset % (barWidth + gap));
+                    const y = centerY - barHeight / 2;
 
-        ctx.fillStyle = 'red';
-        ctx.fillRect(x, y, barWidth, barHeight);
-    }
+                    ctx.fillStyle = "red";
+                    ctx.fillRect(x, y, barWidth, barHeight);
+                }
 
-    requestAnimationFrame(drawWave);
-}
+                requestAnimationFrame(drawWave);
+            }
 
-drawWave();
-</script>
-</body>
+            drawWave();
+        </script>
+    </body>
 </html>

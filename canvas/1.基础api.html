@@ -1,166 +1,168 @@
 <!DOCTYPE html>
 <html lang="zh">
-<head>
-  <meta charset="UTF-8" />
-  <title>Canvas 基础 API 演示</title>
-  <style>
-    body {
-      font-family: "Segoe UI", "PingFang SC", sans-serif;
-      background: #f9f9f9;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px;
-    }
+    <head>
+        <meta charset="UTF-8" />
+        <title>Canvas 基础 API 演示</title>
+        <style>
+            body {
+                font-family: "Segoe UI", "PingFang SC", sans-serif;
+                background: #f9f9f9;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 40px;
+            }
 
-    h2 {
-      margin-bottom: 20px;
-    }
+            h2 {
+                margin-bottom: 20px;
+            }
 
-    .toolbar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+            .toolbar {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+            }
 
-    button {
-      padding: 6px 14px;
-      font-size: 14px;
-      cursor: pointer;
-      border-radius: 6px;
-      border: 1px solid #ddd;
-      background: white;
-      transition: all 0.2s;
-    }
+            button {
+                padding: 6px 14px;
+                font-size: 14px;
+                cursor: pointer;
+                border-radius: 6px;
+                border: 1px solid #ddd;
+                background: white;
+                transition: all 0.2s;
+            }
 
-    button:hover {
-      background: #f0f0f0;
-    }
+            button:hover {
+                background: #f0f0f0;
+            }
 
-    button.active {
-      background: #007bff;
-      color: white;
-      border-color: #007bff;
-    }
+            button.active {
+                background: #007bff;
+                color: white;
+                border-color: #007bff;
+            }
 
-    canvas {
-      background: white;
-      border: 1px solid #ddd;
-    }
+            canvas {
+                background: white;
+                border: 1px solid #ddd;
+            }
 
-    pre {
-      background: #282c34;
-      color: #fff;
-      padding: 16px;
-      border-radius: 8px;
-      margin-top: 20px;
-      width: 600px;
-      overflow-x: auto;
-    }
-  </style>
-</head>
-<body>
-  <h2>🎨 Canvas 基础图形演示</h2>
+            pre {
+                background: #282c34;
+                color: #fff;
+                padding: 16px;
+                border-radius: 8px;
+                margin-top: 20px;
+                width: 600px;
+                overflow-x: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>🎨 Canvas 基础图形演示</h2>
 
-  <div class="toolbar">
-    <!-- <button data-type="point">点</button> -->
-    <button data-type="line">线</button>
-    <button data-type="triangle">三角形</button>
-    <button data-type="rect">矩形</button>
-    <button data-type="circle">圆</button>
-    <button data-type="text">文字</button>
-  </div>
+        <div class="toolbar">
+            <!-- <button data-type="point">点</button> -->
+            <button data-type="line">线</button>
+            <button data-type="triangle">三角形</button>
+            <button data-type="rect">矩形</button>
+            <button data-type="circle">圆</button>
+            <button data-type="text">文字</button>
+        </div>
 
-  <canvas id="canvas" width="600" height="400"></canvas>
+        <canvas id="canvas" width="600" height="400"></canvas>
 
-  <pre id="code"></pre>
+        <pre id="code"></pre>
 
-  <script>
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
-    const codeBox = document.getElementById("code");
-    const buttons = document.querySelectorAll("button");
+        <script>
+            const canvas = document.getElementById("canvas");
+            const ctx = canvas.getContext("2d");
+            const codeBox = document.getElementById("code");
+            const buttons = document.querySelectorAll("button");
 
-    const LOGICAL_WIDTH = 600;
-    const LOGICAL_HEIGHT = 400;
+            const LOGICAL_WIDTH = 600;
+            const LOGICAL_HEIGHT = 400;
 
-    // ✅ 高分屏适配
-    function scaleCanvas() {
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = LOGICAL_WIDTH * dpr;
-      canvas.height = LOGICAL_HEIGHT * dpr;
-      canvas.style.width = LOGICAL_WIDTH + "px";
-      canvas.style.height = LOGICAL_HEIGHT + "px";
-      ctx.scale(dpr,dpr);
-    }
+            // ✅ 高分屏适配
+            function scaleCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                canvas.width = LOGICAL_WIDTH * dpr;
+                canvas.height = LOGICAL_HEIGHT * dpr;
+                canvas.style.width = LOGICAL_WIDTH + "px";
+                canvas.style.height = LOGICAL_HEIGHT + "px";
+                ctx.scale(dpr, dpr);
+            }
 
-    // ✅ 网格背景
-    function drawGrid() {
-      ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-      ctx.strokeStyle = "#eee";
-      ctx.lineWidth = 1;
+            // ✅ 网格背景
+            function drawGrid() {
+                ctx.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+                ctx.strokeStyle = "#eee";
+                ctx.lineWidth = 1;
 
-      for (let x = 0; x <= LOGICAL_WIDTH; x += 50) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, LOGICAL_HEIGHT);
-        ctx.stroke();
-      }
-      for (let y = 0; y <= LOGICAL_HEIGHT; y += 50) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(LOGICAL_WIDTH, y);
-        ctx.stroke();
-      }
+                for (let x = 0; x <= LOGICAL_WIDTH; x += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, LOGICAL_HEIGHT);
+                    ctx.stroke();
+                }
+                for (let y = 0; y <= LOGICAL_HEIGHT; y += 50) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(LOGICAL_WIDTH, y);
+                    ctx.stroke();
+                }
 
-      // 坐标轴
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(LOGICAL_WIDTH, 0);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(0, LOGICAL_HEIGHT);
-      ctx.stroke();
+                // 坐标轴
+                ctx.strokeStyle = "#333";
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(LOGICAL_WIDTH, 0);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, LOGICAL_HEIGHT);
+                ctx.stroke();
 
-      ctx.fillStyle = "#666";
-      ctx.font = "12px sans-serif";
-      for (let x = 0; x <= LOGICAL_WIDTH; x += 50) ctx.fillText(x, x + 2, 12);
-      for (let y = 50; y <= LOGICAL_HEIGHT; y += 50) ctx.fillText(y, 2, y - 2);
-    }
+                ctx.fillStyle = "#666";
+                ctx.font = "12px sans-serif";
+                for (let x = 0; x <= LOGICAL_WIDTH; x += 50)
+                    ctx.fillText(x, x + 2, 12);
+                for (let y = 50; y <= LOGICAL_HEIGHT; y += 50)
+                    ctx.fillText(y, 2, y - 2);
+            }
 
-    const demos = {
-      line: {
-        draw(ctx) {
-          ctx.beginPath();
-          ctx.moveTo(80, 80);
-          ctx.lineTo(200, 200);
-          ctx.strokeStyle = "blue";
-          ctx.lineWidth = 2;
-          ctx.stroke();
-        },
-        code: `ctx.beginPath();
+            const demos = {
+                line: {
+                    draw(ctx) {
+                        ctx.beginPath();
+                        ctx.moveTo(80, 80);
+                        ctx.lineTo(200, 200);
+                        ctx.strokeStyle = "blue";
+                        ctx.lineWidth = 2;
+                        ctx.stroke();
+                    },
+                    code: `ctx.beginPath();
 ctx.moveTo(80, 80);
 ctx.lineTo(200, 200);
 ctx.strokeStyle = "blue";
 ctx.lineWidth = 2;
 ctx.stroke();`,
-      },
-      triangle: {
-        draw(ctx) {
-          ctx.beginPath();
-          ctx.moveTo(150, 50);
-          ctx.lineTo(250, 200);
-          ctx.lineTo(50, 200);
-          ctx.closePath();
-          ctx.fillStyle = "rgba(0,255,0,0.3)";
-          ctx.fill();
-          ctx.strokeStyle = "green";
-          ctx.stroke();
-        },
-        code: `ctx.beginPath();
+                },
+                triangle: {
+                    draw(ctx) {
+                        ctx.beginPath();
+                        ctx.moveTo(150, 50);
+                        ctx.lineTo(250, 200);
+                        ctx.lineTo(50, 200);
+                        ctx.closePath();
+                        ctx.fillStyle = "rgba(0,255,0,0.3)";
+                        ctx.fill();
+                        ctx.strokeStyle = "green";
+                        ctx.stroke();
+                    },
+                    code: `ctx.beginPath();
 ctx.moveTo(150, 50);
 ctx.lineTo(250, 200);
 ctx.lineTo(50, 200);
@@ -169,55 +171,55 @@ ctx.fillStyle = "rgba(0,255,0,0.3)";
 ctx.fill();
 ctx.strokeStyle = "green";
 ctx.stroke();`,
-      },
-      rect: {
-        draw(ctx) {
-          ctx.beginPath();
-          ctx.rect(100, 80, 200, 120);
-          ctx.fillStyle = "orange";
-          ctx.fill();
-          ctx.strokeStyle = "#ff6600";
-          ctx.stroke();
-        },
-        code: `ctx.beginPath();
+                },
+                rect: {
+                    draw(ctx) {
+                        ctx.beginPath();
+                        ctx.rect(100, 80, 200, 120);
+                        ctx.fillStyle = "orange";
+                        ctx.fill();
+                        ctx.strokeStyle = "#ff6600";
+                        ctx.stroke();
+                    },
+                    code: `ctx.beginPath();
 ctx.rect(100, 80, 200, 120);
 ctx.fillStyle = "orange";
 ctx.fill();
 ctx.strokeStyle = "#ff6600";
 ctx.stroke();`,
-      },
-      circle: {
-        draw(ctx) {
-          ctx.beginPath();
-          ctx.arc(200, 150, 80, 0, Math.PI * 2);
-          ctx.fillStyle = "skyblue";
-          ctx.fill();
-          ctx.strokeStyle = "#0077cc";
-          ctx.stroke();
-        },
-        code: `ctx.beginPath();
+                },
+                circle: {
+                    draw(ctx) {
+                        ctx.beginPath();
+                        ctx.arc(200, 150, 80, 0, Math.PI * 2);
+                        ctx.fillStyle = "skyblue";
+                        ctx.fill();
+                        ctx.strokeStyle = "#0077cc";
+                        ctx.stroke();
+                    },
+                    code: `ctx.beginPath();
 ctx.arc(200, 150, 80, 0, Math.PI * 2);
 ctx.fillStyle = "skyblue";
 ctx.fill();
 ctx.strokeStyle = "#0077cc";
 ctx.stroke();`,
-      },
-      text: {
-        draw(ctx) {
-          ctx.font = "24px 'Segoe UI'";
-          ctx.fillStyle = "tomato";
-          ctx.fillText("Hello Canvas!", 100, 150);
+                },
+                text: {
+                    draw(ctx) {
+                        ctx.font = "24px 'Segoe UI'";
+                        ctx.fillStyle = "tomato";
+                        ctx.fillText("Hello Canvas!", 100, 150);
 
-          ctx.strokeStyle = "blue";
-          ctx.lineWidth = 1.5;
-          ctx.strokeText("Canvas 边框文字", 100, 200);
+                        ctx.strokeStyle = "blue";
+                        ctx.lineWidth = 1.5;
+                        ctx.strokeText("Canvas 边框文字", 100, 200);
 
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillStyle = "#333";
-          ctx.fillText("🎨 居中对齐文字", 300, 300);
-        },
-        code: `ctx.font = "24px 'Segoe UI'";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillStyle = "#333";
+                        ctx.fillText("🎨 居中对齐文字", 300, 300);
+                    },
+                    code: `ctx.font = "24px 'Segoe UI'";
 ctx.fillStyle = "tomato";
 ctx.fillText("Hello Canvas!", 100, 150);
 
@@ -229,23 +231,25 @@ ctx.textAlign = "center";
 ctx.textBaseline = "middle";
 ctx.fillStyle = "#333";
 ctx.fillText("🎨 居中对齐文字", 300, 300);`,
-      },
-    };
+                },
+            };
 
-    function draw(type) {
-      scaleCanvas();
-      drawGrid();
-      const demo = demos[type];
-      demo.draw(ctx);
-      codeBox.textContent = demo.code;
-      buttons.forEach((btn) => btn.classList.toggle("active", btn.dataset.type === type));
-    }
+            function draw(type) {
+                scaleCanvas();
+                drawGrid();
+                const demo = demos[type];
+                demo.draw(ctx);
+                codeBox.textContent = demo.code;
+                buttons.forEach((btn) =>
+                    btn.classList.toggle("active", btn.dataset.type === type)
+                );
+            }
 
-    buttons.forEach((btn) => {
-      btn.addEventListener("click", () => draw(btn.dataset.type));
-    });
+            buttons.forEach((btn) => {
+                btn.addEventListener("click", () => draw(btn.dataset.type));
+            });
 
-    draw("line");
-  </script>
-</body>
+            draw("line");
+        </script>
+    </body>
 </html>
